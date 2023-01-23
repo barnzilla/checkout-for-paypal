@@ -332,6 +332,27 @@ class CHECKOUT_FOR_PAYPAL {
 $GLOBALS['checkout_for_paypal'] = new CHECKOUT_FOR_PAYPAL();
 
 function checkout_for_paypal_button_handler($atts) {
+	
+	# Check for shortcodes/dynamic values in attributes
+	# Filter any shortcodes by their hooks
+	foreach( $atts as $meta_key => $meta_value ) {
+	
+		$atts[$meta_key] = do_shortcode(
+		
+			str_replace(
+			
+				array( '{{', '}}' ),
+				
+				array( '[', ']' ),
+				
+				$atts[$meta_key]
+			
+			)
+		
+		);
+	
+	}
+	
     $atts = array_map('sanitize_text_field', $atts);
     $description = '';
     /*
