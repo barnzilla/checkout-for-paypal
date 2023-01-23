@@ -332,23 +332,17 @@ class CHECKOUT_FOR_PAYPAL {
 $GLOBALS['checkout_for_paypal'] = new CHECKOUT_FOR_PAYPAL();
 
 function checkout_for_paypal_button_handler($atts) {
-	
+		
 	# Check for shortcodes/dynamic values in attributes
 	# Filter any shortcodes by their hooks
 	foreach( $atts as $meta_key => $meta_value ) {
 	
 		$atts[$meta_key] = do_shortcode(
-		
 			str_replace(
-			
 				array( '{{', '}}' ),
-				
 				array( '[', ']' ),
-				
 				$atts[$meta_key]
-			
 			)
-		
 		);
 	
 	}
@@ -677,6 +671,42 @@ function checkout_for_paypal_ajax_process_order(){
         checkout_for_paypal_debug_log("Order information updated", true);
         $details['post_order_id'] = $post_id;
         do_action('checkout_for_paypal_order_processed', $details);
+		
+		# Update form data table that user completed before proceeding to PayPal
+		global $wpdb;
+		
+		$explode = explode( '-', rtrim( explode( '(reference number: ', $item_description )[1], ')' ) );
+		$bzc_id = $explode[0];
+		$wp_user_id = $explode[1];
+		
+		$sql_placeholders = null;
+		$sql_data = array();
+		
+		$variables_to_add = array(
+			'_txn_id' => $txn_id,
+			'_first_name' => $first_name,
+			'_last_name' => $last_name,
+			'_email' => $email,
+			'_mc_gross' => $mc_gross,
+			'_payment_status' => $payment_status
+		);
+	
+		foreach( $variables_to_add as $meta_key => $meta_value ) {
+			
+			$sql_placeholders .= '( %s, %d, %s, %s ),';
+			array_push( $sql_data, $bzc_id, $wp_user_id, $meta_key, wp_unslash( $meta_value ) );
+			 
+		}
+		
+		$query = $wpdb->query( $wpdb->prepare( 
+			'
+				REPLACE INTO `' . $wpdb->base_prefix . 'bzc_form`
+				( bzc_id, wp_user_id, meta_key, meta_value )
+				VALUES ' . rtrim( $sql_placeholders, ',' ) . '
+			', 
+				$sql_data
+		) );
+		
     } else {
         checkout_for_paypal_debug_log("Order information could not be updated", false);
         wp_die();
