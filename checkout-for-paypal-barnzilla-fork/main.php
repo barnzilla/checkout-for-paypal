@@ -349,6 +349,7 @@ function checkout_for_paypal_button_handler($atts) {
 	
     $atts = array_map('sanitize_text_field', $atts);
     $description = '';
+	$atts['amount'] = 1;
     /*
     if(!isset($atts['item_description']) || empty($atts['item_description'])){
         return __('You need to provide a valid description', 'checkout-for-paypal');
@@ -423,36 +424,29 @@ EOT;
     $button_code .= '<div id="'.esc_attr($button_id).'" style="'.esc_attr('max-width: '.$width.'px;').'"></div>';
     $button_code .= '</div>';
     $ajax_url = admin_url('admin-ajax.php');
+	
+	$purchase_units = $atts['paypal-items'];	
+	$return_output = 'window.location.replace("' . esc_html( get_permalink( get_page_by_path( $atts['return-url-path'] ) ) ) . '");';
+	
     $button_code .= <<<EOT
     <script>
     jQuery(document).ready(function() {
             
         function initPayPalButton{$id}() {
-            var description = "{$esc_js($description)}";
-            var amount = "{$esc_js($atts['amount'])}";
-
-            var purchase_units = [];
-            purchase_units[0] = {};
-            purchase_units[0].amount = {};
-   
             paypal.Buttons({
                 style: {
                     layout: '{$layout}',
                     color: '{$color}',
                     shape: '{$shape}'
                 },
-                onInit: function (data, actions) {
-
-                },  
+				
+                onInit: function (data, actions) {},  
                 
-                onClick: function () {
-                    purchase_units[0].description = description;
-                    purchase_units[0].amount.value = amount;
-                },    
+                onClick: function () {},    
                     
                 createOrder: function(data, actions) {
                     return actions.order.create({
-                        purchase_units: purchase_units,
+                        $purchase_units
                         $no_shipping    
                     });
                 },
@@ -675,7 +669,7 @@ function checkout_for_paypal_ajax_process_order(){
 		# Update form data table that user completed before proceeding to PayPal
 		global $wpdb;
 		
-		$explode = explode( '-', rtrim( explode( '(reference number: ', $item_description )[1], ')' ) );
+		$explode = explode( '-', sanitize_text_field( $purchase_units['custom_id'] ) );
 		$bzc_id = $explode[0];
 		$wp_user_id = $explode[1];
 		
