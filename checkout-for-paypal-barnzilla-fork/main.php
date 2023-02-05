@@ -428,60 +428,68 @@ EOT;
 	$purchase_units = $atts['paypal-items'];	
 	$return_output = 'window.location.replace("' . esc_html( get_permalink( get_page_by_path( $atts['return-url-path'] ) ) ) . '");';
 	
-    $button_code .= <<<EOT
-    <script>
-    jQuery(document).ready(function() {
-            
-        function initPayPalButton{$id}() {
-            paypal.Buttons({
-                style: {
-                    layout: '{$layout}',
-                    color: '{$color}',
-                    shape: '{$shape}'
-                },
-				
-                onInit: function (data, actions) {},  
-                
-                onClick: function () {},    
-                    
-                createOrder: function(data, actions) {
-                    return actions.order.create({
-                        $purchase_units
-                        $no_shipping    
-                    });
-                },
-                            
-                onApprove: function(data, actions) {
-                    return actions.order.capture().then(function(details) {
-                        //console.log('Transaction completed by ' + details.payer.name.given_name);
-                        //console.log(details);
-                        var data = {
-                            'action': "coforpaypal_ajax_process_order",
-                            'coforpaypal_ajax_process_order': "1",
-                            'details': details 
-                        };  
-                        jQuery.ajax({
-                            url : "{$ajax_url}",
-                            type : "POST",
-                            data : data,
-                            success: function(response) {
-                                //console.log(response);
-                                $return_output
-                            }
-                        });
-                    });
-                },
-                                    
-                onError: function (err) {
-                    console.log(err);
-                }
-                    
-            }).render('#$button_id');
-        }
-        initPayPalButton{$id}();
-    });                     
-    </script>        
-EOT;
+	if( $purchase_units ) :
+	
+		$button_code .= <<<EOT
+			<script>
+			jQuery(document).ready(function() {
+					
+				function initPayPalButton{$id}() {
+					paypal.Buttons({
+						style: {
+							layout: '{$layout}',
+							color: '{$color}',
+							shape: '{$shape}'
+						},
+						
+						onInit: function (data, actions) {},  
+						
+						onClick: function () {},    
+							
+						createOrder: function(data, actions) {
+							return actions.order.create({
+								$purchase_units
+								$no_shipping    
+							});
+						},
+									
+						onApprove: function(data, actions) {
+							return actions.order.capture().then(function(details) {
+								//console.log('Transaction completed by ' + details.payer.name.given_name);
+								//console.log(details);
+								var data = {
+									'action': "coforpaypal_ajax_process_order",
+									'coforpaypal_ajax_process_order': "1",
+									'details': details 
+								};  
+								jQuery.ajax({
+									url : "{$ajax_url}",
+									type : "POST",
+									data : data,
+									success: function(response) {
+										//console.log(response);
+										$return_output
+									}
+								});
+							});
+						},
+											
+						onError: function (err) {
+							console.log(err);
+						}
+							
+					}).render('#$button_id');
+				}
+				initPayPalButton{$id}();
+			});                     
+			</script>        
+		EOT;
+	
+	else :
+	
+		$button_code = null;
+	
+	endif;
     
     return $button_code;
 }
