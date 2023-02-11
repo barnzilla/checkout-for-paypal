@@ -426,7 +426,7 @@ EOT;
     $ajax_url = admin_url('admin-ajax.php');
 	
 	$purchase_units = $atts['paypal-items'];	
-	$return_output = 'window.location.replace("' . esc_html( get_permalink( get_page_by_path( $atts['return-url-path'] ) ) ) . '");';
+	$return_output = 'window.location.replace("' . esc_html( get_permalink( get_page_by_path( $atts['return-url-path'] ) ) . '?bzc_id=' . sanitize_text_field( $_POST['bzc_id'] ) ) . '");';
 	
 	if( $purchase_units ) :
 	
