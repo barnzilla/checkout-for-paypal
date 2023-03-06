@@ -426,7 +426,7 @@ EOT;
     $ajax_url = admin_url('admin-ajax.php');
 	
 	$purchase_units = $atts['paypal-items'];	
-	$return_output = 'window.location.replace("' . esc_html( get_permalink( get_page_by_path( $atts['return-url-path'] ) ) . '?bzc_id=' . sanitize_text_field( $_POST['bzc_id'] ) ) . '");';
+	$return_output = 'window.location.replace("' . esc_html( get_permalink( get_page_by_title( $atts['return-url-path'] ) ) . '?bzc_id=' . sanitize_text_field( $_POST['bzc_id'] ) ) . '");';
 	
 	if( $purchase_units ) :
 	
@@ -689,21 +689,28 @@ function checkout_for_paypal_ajax_process_order(){
 			'_first_name' => $first_name,
 			'_last_name' => $last_name,
 			'_email' => $email,
+			'_address_street' => $address_street,
+			'_address_city' => $address_city,
+			'_address_state' => $address_state,
+			'_address_zip' => $address_zip,
+			'_address_country' => $address_country,
 			'_mc_gross' => $mc_gross,
 			'_payment_status' => $payment_status
 		);
+		
+		$current_date_time = new DateTime( 'now', new DateTimeZone( 'America/Toronto' ) );
 	
 		foreach( $variables_to_add as $meta_key => $meta_value ) {
 			
-			$sql_placeholders .= '( %s, %d, %s, %s ),';
-			array_push( $sql_data, $bzc_id, $wp_user_id, $meta_key, wp_unslash( $meta_value ) );
+			$sql_placeholders .= '( %s, %s, %d, %s, %s ),';
+			array_push( $sql_data, $bzc_id, $current_date_time->format( 'Y-m-d H:i:s' ), $wp_user_id, $meta_key, wp_unslash( $meta_value ) );
 			 
 		}
 		
 		$query = $wpdb->query( $wpdb->prepare( 
 			'
 				REPLACE INTO `' . $wpdb->base_prefix . 'bzc_form`
-				( bzc_id, wp_user_id, meta_key, meta_value )
+				( bzc_id, date_time, wp_user_id, meta_key, meta_value )
 				VALUES ' . rtrim( $sql_placeholders, ',' ) . '
 			', 
 				$sql_data
