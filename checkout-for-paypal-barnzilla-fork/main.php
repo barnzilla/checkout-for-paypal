@@ -100,6 +100,19 @@ class CHECKOUT_FOR_PAYPAL {
                 if(isset($options['enable_venmo']) && $options['enable_venmo'] == '1'){
                     $args['enable-funding'] = 'venmo';
                 }
+				
+				if( ! empty( $_POST['bzc_paypal_app_client_id'] ) ) :
+				
+					$args['client-id'] = sanitize_text_field( $_POST['bzc_paypal_app_client_id'] );
+				
+				endif;
+				
+				if( ! empty( $_POST['bzc_paypal_app_currency'] ) ) :
+				
+					$args['currency'] = sanitize_text_field( $_POST['bzc_paypal_app_currency'] );
+				
+				endif;
+				
                 $sdk_js_url = add_query_arg($args, 'https://www.paypal.com/sdk/js');
                 wp_enqueue_script('jquery');
                 wp_register_script('checkout-for-paypal', $sdk_js_url, array('jquery'), null);
@@ -427,7 +440,7 @@ EOT;
 	
 	$purchase_units = $atts['paypal-items'];	
 	$return_output = 'window.location.replace("' . esc_html( get_permalink( get_page_by_title( $atts['return-url-path'] ) ) . '?bzc_id=' . sanitize_text_field( $_POST['bzc_id'] ) ) . '");';
-	
+		                	
 	if( $purchase_units ) :
 	
 		$button_code .= <<<EOT
