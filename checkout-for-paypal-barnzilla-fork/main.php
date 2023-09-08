@@ -439,7 +439,23 @@ EOT;
     $ajax_url = admin_url('admin-ajax.php');
 	
 	$purchase_units = $atts['paypal-items'];	
-	$return_output = 'window.location.replace("' . esc_html( get_permalink( get_page_by_title( $atts['return-url-path'] ) ) . '?bzc_id=' . sanitize_text_field( $_POST['bzc_id'] ) ) . '");';
+	
+	$atts_return_url_path = get_posts(
+		array(
+			'post_type'              => 'page',
+			'title'                  => $atts['return-url-path'],
+			'post_status'            => 'publish',
+			'numberposts'            => 1,
+			'update_post_term_cache' => false,
+			'update_post_meta_cache' => false,           
+			'orderby'                => 'post_date ID',
+			'order'                  => 'ASC',
+		)
+	);
+	
+	$atts_return_url_path = get_permalink( $atts_return_url_path[0]->ID );
+	
+	$return_output = 'window.location.replace("' . esc_url( $atts_return_url_path . '?bzc_id=' . sanitize_text_field( $_POST['bzc_id'] ) ) . '");';
 		                	
 	if( $purchase_units ) :
 	
@@ -500,7 +516,19 @@ EOT;
 	
 	else :
 	
-		$button_code = null;
+		$button_code = do_shortcode(
+			
+			'
+			
+				</form><form name="bzc-form" id="bzc-form" method="post" action="' . esc_url( $atts_return_url_path . '?bzc_id=' . sanitize_text_field( $_POST['bzc_id'] ) ) . '&paypal_skipped=true">
+							
+					[bzc-row][bzc-form-field column-size="1/5" type="submit" class="fusion-button button-flat fusion-button-default-size button-default fusion-button-default button-1 fusion-button-default-span fusion-button-default-type" name="submit" value="Submit" required="true"][/bzc-row]
+					
+				</form>
+			
+			'
+		
+		);
 	
 	endif;
     
