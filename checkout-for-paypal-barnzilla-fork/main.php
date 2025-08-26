@@ -352,8 +352,8 @@ function checkout_for_paypal_button_handler($atts) {
 	
 		$atts[$meta_key] = do_shortcode(
 			str_replace(
-				array( '{{', '}}' ),
-				array( '[', ']' ),
+				array( '{{', '}}', '|shortcode_start|', '|shortcode_stop|' ),
+				array( '[', ']', '[', ']' ),
 				$atts[$meta_key]
 			)
 		);
